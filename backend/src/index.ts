@@ -24,7 +24,8 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
       process.env.FRONTEND_URL || 'https://your-frontend-domain.vercel.app',
       /^https:\/\/.*\.vercel\.app$/,  // Allow any vercel.app subdomain
       'https://realtime-chat-vcbo.vercel.app',
-      /^https:\/\/realtime-chat-.*\.vercel\.app$/  // Allow any realtime-chat deployment
+      /^https:\/\/realtime-chat-.*\.vercel\.app$/,  // Allow any realtime-chat deployment
+      'https://realtime-chat-vcbo-qc6opqkpo-hetd1004s-projects.vercel.app' // Specific deployment URL
     ]
   : [
       'http://localhost:3000',
@@ -33,9 +34,44 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
       /^http:\/\/localhost:\d+$/  // Allow any localhost port
     ];
 
+console.log('🔧 CORS Configuration:', {
+  NODE_ENV: process.env.NODE_ENV,
+  FRONTEND_URL: process.env.FRONTEND_URL,
+  allowedOrigins: allowedOrigins
+});
+
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
+  origin: (origin, callback) => {
+    console.log('🌐 CORS request from origin:', origin);
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list
+    const isAllowed = allowedOrigins.some(allowedOrigin => {
+      if (typeof allowedOrigin === 'string') {
+        return allowedOrigin === origin;
+      }
+      if (allowedOrigin instanceof RegExp) {
+        return allowedOrigin.test(origin);
+      }
+      return false;
+    });
+    
+    console.log('🔍 Origin check result:', { origin, isAllowed });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.log('❌ CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  preflightContinue: false,
+  optionsSuccessStatus: 200
 }));
 
 app.use(express.json({ limit: '10mb' }));

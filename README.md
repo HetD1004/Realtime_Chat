@@ -3,8 +3,8 @@ Real-Time Chat Website
 A full-stack real-time chat application built with Flutter frontend and TypeScript Socket.io backend, deployed on Vercel.
 
 **Live Demo**: 
-- Frontend: `https://your-frontend-domain.vercel.app`
-- Backend API: `https://your-backend-domain.vercel.app`
+- Backend API: `https://realtime-chat-taupe-pi.vercel.app`
+- Frontend: Deploy using `./deploy-frontend.ps1` or `./deploy-frontend.sh`
 
 ## Features
 

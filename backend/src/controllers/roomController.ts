@@ -209,3 +209,98 @@ export const getRoomMessages = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+// New endpoint for polling - get messages since a specific timestamp
+export const getRoomMessagesSince = async (req: AuthRequest, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const { since, limit = 10 } = req.query;
+    
+    console.log(`Getting messages since: ${since} for room: ${roomId}`);
+    
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Check if user is a member of the room
+    const room = await ChatRoom.findById(roomId);
+    if (!room) {
+      return res.status(404).json({ message: 'Chat room not found' });
+    }
+
+    if (!room.members.includes(userId as any)) {
+      return res.status(403).json({ message: 'Access denied - not a member of this room' });
+    }
+
+    // Parse the since timestamp
+    const sinceDate = since ? new Date(since as string) : new Date(0);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string)));
+
+    // Get messages since the timestamp
+    const messages = await Message.find({ 
+      roomId,
+      timestamp: { $gt: sinceDate }
+    })
+      .sort({ timestamp: 1 }) // Chronological order
+      .limit(limitNum)
+      .populate('senderId', 'username');
+
+    console.log(`Found ${messages.length} new messages since ${sinceDate}`);
+
+    res.json(messages);
+  } catch (error) {
+    console.error('Get room messages since error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Send message to room
+export const sendMessageToRoom = async (req: AuthRequest, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const { content } = req.body;
+    
+    console.log(`Sending message to room: ${roomId}`);
+    
+    const userId = req.user?._id;
+    const username = req.user?.username;
+    
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      return res.status(400).json({ message: 'Message content is required' });
+    }
+
+    // Check if user is a member of the room
+    const room = await ChatRoom.findById(roomId);
+    if (!room) {
+      return res.status(404).json({ message: 'Chat room not found' });
+    }
+
+    if (!room.members.includes(userId as any)) {
+      return res.status(403).json({ message: 'Access denied - not a member of this room' });
+    }
+
+    // Create new message
+    const message = new Message({
+      content: content.trim(),
+      senderId: userId,
+      senderUsername: username,
+      roomId: roomId,
+      timestamp: new Date()
+    });
+
+    await message.save();
+    await message.populate('senderId', 'username');
+
+    console.log(`Message sent successfully: ${message._id}`);
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.error('Send message error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};

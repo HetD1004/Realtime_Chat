@@ -2,13 +2,13 @@ import 'package:flutter/foundation.dart';
 import '../models/chat_room.dart';
 import '../models/message.dart';
 import '../services/api_service.dart';
-import '../services/socket_service.dart';
+import '../services/polling_service.dart';
 import '../models/user.dart';
 
 class ChatProvider with ChangeNotifier {
   final ApiService _apiService = ApiService();
-  final SocketService _socketService = SocketService();
-  
+  final PollingService _pollingService = PollingService();
+
   List<ChatRoom> _chatRooms = [];
   List<Message> _messages = [];
   ChatRoom? _currentRoom;
@@ -27,32 +27,34 @@ class ChatProvider with ChangeNotifier {
 
   void setCurrentUser(User user) {
     _currentUser = user;
-    _connectSocket();
+    _connectService();
     notifyListeners();
   }
 
-  void _connectSocket() {
+  void _connectService() {
     if (_currentUser == null) return;
 
-    _socketService.onConnected = () {
+    _pollingService.onConnected = () {
       _isConnected = true;
       _clearError();
       notifyListeners();
     };
 
-    _socketService.onDisconnected = () {
+    _pollingService.onDisconnected = () {
       _isConnected = false;
       notifyListeners();
     };
 
-    _socketService.onMessageReceived = (message) {
+    _pollingService.onMessageReceived = (message) {
       if (_currentRoom != null && message.roomId == _currentRoom!.id) {
         // Check for duplicate messages by ID first, then by content+sender+time
-        final messageExists = _messages.any((msg) => 
-          msg.id == message.id || 
-          (msg.content == message.content && 
-           msg.senderId == message.senderId && 
-           msg.timestamp.difference(message.timestamp).abs().inSeconds < 5)
+        final messageExists = _messages.any(
+          (msg) =>
+              msg.id == message.id ||
+              (msg.content == message.content &&
+                  msg.senderId == message.senderId &&
+                  msg.timestamp.difference(message.timestamp).abs().inSeconds <
+                      5),
         );
         if (!messageExists) {
           _messages.add(message);
@@ -61,17 +63,10 @@ class ChatProvider with ChangeNotifier {
       }
     };
 
-    _socketService.onUserJoined = (username) {
-      // Could show notification or update UI
-      print('$username joined the room');
-    };
+    // Note: PollingService doesn't have user join/leave events
+    // These would need to be implemented separately if needed
 
-    _socketService.onUserLeft = (username) {
-      // Could show notification or update UI
-      print('$username left the room');
-    };
-
-    _socketService.connect(_currentUser!);
+    _pollingService.connect(_currentUser!);
   }
 
   Future<void> loadChatRooms() async {
@@ -99,7 +94,7 @@ class ChatProvider with ChangeNotifier {
         name: name,
         description: description,
       );
-      
+
       _chatRooms.insert(0, newRoom);
       _setLoading(false);
     } catch (e) {
@@ -123,18 +118,18 @@ class ChatProvider with ChangeNotifier {
 
       // Leave current room if any
       if (_currentRoom != null) {
-        _socketService.leaveRoom(_currentRoom!.id);
+        _pollingService.leaveRoom(_currentRoom!.id);
       }
 
       // Set new current room
       _currentRoom = room;
-      
+
       // Load messages for the room
       await _loadRoomMessages(room.id);
-      
-      // Join room via socket
+
+      // Join room via polling
       if (_isConnected) {
-        _socketService.joinRoom(room.id);
+        _pollingService.joinRoom(room.id);
       }
 
       _setLoading(false);
@@ -155,7 +150,7 @@ class ChatProvider with ChangeNotifier {
 
   void sendMessage(String content) {
     if (_currentRoom != null && _isConnected && _currentUser != null) {
-      _socketService.sendMessage(content);
+      _pollingService.sendMessage(content);
     }
   }
 
@@ -165,10 +160,10 @@ class ChatProvider with ChangeNotifier {
     try {
       // Leave room via API
       await _apiService.leaveRoom(_currentRoom!.id);
-      
-      // Leave room via socket
+
+      // Leave room via polling
       if (_isConnected) {
-        _socketService.leaveRoom(_currentRoom!.id);
+        _pollingService.leaveRoom(_currentRoom!.id);
       }
 
       // Clear current room and messages
@@ -187,7 +182,7 @@ class ChatProvider with ChangeNotifier {
 
   @override
   void dispose() {
-    _socketService.dispose();
+    _pollingService.disconnect();
     super.dispose();
   }
 

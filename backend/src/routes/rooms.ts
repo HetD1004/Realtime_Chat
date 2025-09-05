@@ -4,7 +4,9 @@ import {
   createChatRoom, 
   joinRoom, 
   leaveRoom, 
-  getRoomMessages 
+  getRoomMessages,
+  getRoomMessagesSince,
+  sendMessageToRoom
 } from '../controllers/roomController';
 import { authenticateToken } from '../middleware/auth';
 
@@ -18,5 +20,7 @@ router.post('/', createChatRoom);
 router.post('/:roomId/join', joinRoom);
 router.post('/:roomId/leave', leaveRoom);
 router.get('/:roomId/messages', getRoomMessages);
+router.get('/:roomId/messages/since', getRoomMessagesSince); // New polling endpoint
+router.post('/:roomId/messages', sendMessageToRoom); // Send message endpoint
 
 export default router;

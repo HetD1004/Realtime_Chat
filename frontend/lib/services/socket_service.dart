@@ -20,18 +20,22 @@ class SocketService {
   void connect(User user) {
     _currentUser = user;
 
-    print('🔌 Connecting to socket server at $serverUrl');
+    print('🔌 Connecting to server at $serverUrl');
     print('👤 User: ${user.username}');
     print('🔑 Token: ${user.token != null ? 'Present' : 'NULL'}');
 
+    // Disable Socket.io upgrade to WebSocket completely
     _socket = IO.io(serverUrl, <String, dynamic>{
-      'transports': [
-        'polling',
-      ], // Use polling only for better Vercel compatibility
+      'transports': ['polling'], // Only polling
+      'upgrade': false, // Prevent upgrade to WebSocket
       'autoConnect': false,
       'timeout': 30000,
       'forceNew': true,
+      'reconnection': true,
+      'reconnectionDelay': 2000,
+      'reconnectionAttempts': 5,
       'auth': {'token': user.token},
+      'extraHeaders': {'Connection': 'keep-alive'},
     });
 
     _socket!.connect();

@@ -1,4 +1,5 @@
 // Configuration for API endpoints - Updated for correct backend URL
+// Last updated: 2025-09-05 - Fixed WebSocket and API connectivity
 class Config {
   static const String _devBaseUrl = 'http://localhost:3000/api';
   static const String _prodBaseUrl =
@@ -21,11 +22,14 @@ class Config {
         (Uri.base.host != 'localhost' && Uri.base.host != '127.0.0.1');
 
     // Debug logging
-    print('🔧 Config Debug:');
+    print('🔧 Config Debug (v2):');
     print('   isDev: $isDev');
     print('   URI.base.host: ${Uri.base.host}');
     print('   isProduction: $isProduction');
     print('   baseUrl: ${isProduction ? _prodBaseUrl : _devBaseUrl}');
+    print(
+      '   socketUrl: ${isProduction ? 'https://realtime-chat-two-sable.vercel.app' : 'http://localhost:3000'}',
+    );
 
     return isProduction;
   }

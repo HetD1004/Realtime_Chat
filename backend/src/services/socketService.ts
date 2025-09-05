@@ -20,9 +20,17 @@ export class SocketService {
   constructor(server: HTTPServer) {
     this.io = new SocketIOServer(server, {
       cors: {
-        origin: process.env.CORS_ORIGIN || "http://localhost:3000",
-        methods: ["GET", "POST"]
-      }
+        origin: [
+          "http://localhost:3000",
+          "http://localhost:8080", 
+          "https://realtime-chat-vcbo.vercel.app",
+          "https://realtime-chat-two-sable.vercel.app",
+          process.env.FRONTEND_URL || "*"
+        ],
+        methods: ["GET", "POST"],
+        credentials: true
+      },
+      transports: ['websocket', 'polling']
     });
 
     this.initializeHandlers();
@@ -32,29 +40,36 @@ export class SocketService {
     // Authentication middleware
     this.io.use(async (socket: any, next) => {
       try {
+        console.log('🔐 Socket authentication attempt');
         const token = socket.handshake.auth.token;
         
         if (!token) {
+          console.log('❌ No token provided for socket connection');
           return next(new Error('Authentication error: No token provided'));
         }
 
         const jwtSecret = process.env.JWT_SECRET;
         if (!jwtSecret) {
+          console.log('❌ JWT_SECRET not configured');
           return next(new Error('Server configuration error'));
         }
 
+        console.log('🔍 Verifying JWT token...');
         const decoded = jwt.verify(token, jwtSecret) as JwtPayload;
         const user = await User.findById(decoded.userId);
 
         if (!user) {
+          console.log('❌ User not found for token');
           return next(new Error('Authentication error: User not found'));
         }
 
         socket.userId = (user._id as string).toString();
         socket.username = user.username;
         
+        console.log(`✅ Socket authenticated for user: ${user.username}`);
         next();
-      } catch (error) {
+      } catch (error: any) {
+        console.log('❌ Socket authentication error:', error.message);
         next(new Error('Authentication error: Invalid token'));
       }
     });

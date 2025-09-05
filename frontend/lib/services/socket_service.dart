@@ -20,28 +20,41 @@ class SocketService {
   void connect(User user) {
     _currentUser = user;
 
-    print('Connecting to socket server at $serverUrl');
-    print(
-      'User: ${user.username}, Token: ${user.token != null ? 'Present' : 'NULL'}',
-    );
+    print('🔌 Connecting to socket server at $serverUrl');
+    print('👤 User: ${user.username}');
+    print('🔑 Token: ${user.token != null ? 'Present' : 'NULL'}');
 
     _socket = IO.io(serverUrl, <String, dynamic>{
-      'transports': ['websocket'],
+      'transports': ['websocket', 'polling'],
       'autoConnect': false,
+      'timeout': 20000,
+      'forceNew': true,
       'auth': {'token': user.token},
+      'extraHeaders': {'Origin': 'https://realtime-chat-vcbo.vercel.app'},
     });
 
     _socket!.connect();
 
     // Set up event listeners
     _socket!.on('connect', (_) {
-      print('Connected to server');
+      print('✅ Connected to server successfully');
       onConnected?.call();
     });
 
-    _socket!.on('disconnect', (_) {
-      print('Disconnected from server');
+    _socket!.on('disconnect', (reason) {
+      print('❌ Disconnected from server: $reason');
       onDisconnected?.call();
+    });
+
+    _socket!.on('connect_error', (error) {
+      print('🚨 Connection error: $error');
+      // Attempt reconnection after delay
+      Future.delayed(Duration(seconds: 5), () {
+        if (_socket != null && !_socket!.connected) {
+          print('🔄 Attempting to reconnect...');
+          _socket!.connect();
+        }
+      });
     });
 
     _socket!.on('receive_message', (data) {

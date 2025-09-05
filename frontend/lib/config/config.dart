@@ -1,3 +1,4 @@
+// Configuration for API endpoints - Updated for correct backend URL
 class Config {
   static const String _devBaseUrl = 'http://localhost:3000/api';
   static const String _prodBaseUrl =

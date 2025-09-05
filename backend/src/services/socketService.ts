@@ -27,10 +27,14 @@ export class SocketService {
           "https://realtime-chat-two-sable.vercel.app",
           process.env.FRONTEND_URL || "*"
         ],
-        methods: ["GET", "POST"],
-        credentials: true
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true,
+        allowedHeaders: ["Content-Type", "Authorization"]
       },
-      transports: ['websocket', 'polling']
+      transports: ['polling'], // Use polling for better Vercel serverless compatibility
+      allowEIO3: true,
+      pingTimeout: 60000,
+      pingInterval: 25000
     });
 
     this.initializeHandlers();

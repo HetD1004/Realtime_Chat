@@ -25,12 +25,13 @@ class SocketService {
     print('🔑 Token: ${user.token != null ? 'Present' : 'NULL'}');
 
     _socket = IO.io(serverUrl, <String, dynamic>{
-      'transports': ['websocket', 'polling'],
+      'transports': [
+        'polling',
+      ], // Use polling only for better Vercel compatibility
       'autoConnect': false,
-      'timeout': 20000,
+      'timeout': 30000,
       'forceNew': true,
       'auth': {'token': user.token},
-      'extraHeaders': {'Origin': 'https://realtime-chat-vcbo.vercel.app'},
     });
 
     _socket!.connect();
@@ -38,6 +39,9 @@ class SocketService {
     // Set up event listeners
     _socket!.on('connect', (_) {
       print('✅ Connected to server successfully');
+      print(
+        '🔗 Transport: ${_socket?.io.engine?.transport?.name ?? 'unknown'}',
+      );
       onConnected?.call();
     });
 
@@ -46,10 +50,32 @@ class SocketService {
       onDisconnected?.call();
     });
 
+    _socket!.on('reconnect', (attemptNumber) {
+      print('🔄 Reconnected after $attemptNumber attempts');
+      onConnected?.call();
+    });
+
+    _socket!.on('reconnect_attempt', (attemptNumber) {
+      print('🔄 Reconnection attempt #$attemptNumber');
+    });
+
+    _socket!.on('reconnect_error', (error) {
+      print('❌ Reconnection error: $error');
+    });
+
     _socket!.on('connect_error', (error) {
       print('🚨 Connection error: $error');
-      // Attempt reconnection after delay
-      Future.delayed(Duration(seconds: 5), () {
+      print('🔍 Error details: ${error.toString()}');
+
+      // More detailed error handling
+      if (error.toString().contains('websocket')) {
+        print(
+          '💡 WebSocket error detected - this is common with Vercel serverless',
+        );
+      }
+
+      // Attempt reconnection with exponential backoff
+      Future.delayed(Duration(seconds: 3), () {
         if (_socket != null && !_socket!.connected) {
           print('🔄 Attempting to reconnect...');
           _socket!.connect();

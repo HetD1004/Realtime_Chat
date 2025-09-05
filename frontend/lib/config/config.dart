@@ -3,11 +3,21 @@ class Config {
   static const String _prodBaseUrl =
       'https://realtime-chat-7xszyq30u-hetd1004s-projects.vercel.app/api';
 
-  // Use a more reliable production detection
-  static bool get _isProduction =>
-      const bool.fromEnvironment('dart.vm.product') ||
-      Uri.base.host.contains('vercel.app') ||
-      Uri.base.host != 'localhost';
+  // Force production URLs when not in development environment
+  static bool get _isProduction {
+    // Check if running in development mode
+    bool isDev = false;
+    assert(() {
+      isDev = true;
+      return true;
+    }());
+
+    // If not in debug mode, or if the host is vercel.app, use production
+    return !isDev ||
+        Uri.base.host.contains('vercel.app') ||
+        Uri.base.host.contains('netlify.app') ||
+        (Uri.base.host != 'localhost' && Uri.base.host != '127.0.0.1');
+  }
 
   static String get baseUrl => _isProduction ? _prodBaseUrl : _devBaseUrl;
   static String get socketUrl => _isProduction

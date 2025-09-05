@@ -9,11 +9,11 @@ import 'screens/register_screen.dart';
 import 'screens/dashboard_screen.dart';
 
 void main() {
-  // Force cache bust - v2.0.1
+  // Force cache bust - v2.1.0 FINAL
   print(
-    '🚀 POLLING SERVICE v2.0.1 - Build ${DateTime.now().millisecondsSinceEpoch}',
+    '🚀🚀🚀 POLLING SERVICE v2.1.0 FINAL - Build ${DateTime.now().millisecondsSinceEpoch}',
   );
-  print('🔥 NO WEBSOCKETS - ONLY HTTP POLLING');
+  print('🔥🔥🔥 NO WEBSOCKETS - ONLY HTTP POLLING - FINAL VERSION');
   runApp(const MyApp());
 }
 

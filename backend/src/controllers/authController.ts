@@ -5,7 +5,22 @@ import { AuthRequest } from '../middleware/auth';
 
 export const register = async (req: Request, res: Response) => {
   try {
+    console.log('🔐 Registration attempt:', {
+      body: req.body,
+      headers: req.headers,
+      method: req.method,
+      url: req.url
+    });
+    
     const { username, email, password } = req.body;
+
+    // Validate input
+    if (!username || !email || !password) {
+      console.log('❌ Missing required fields:', { username: !!username, email: !!email, password: !!password });
+      return res.status(400).json({
+        message: 'Username, email, and password are required'
+      });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({
@@ -13,6 +28,7 @@ export const register = async (req: Request, res: Response) => {
     });
 
     if (existingUser) {
+      console.log('❌ User already exists:', existingUser.email === email ? 'email' : 'username');
       return res.status(400).json({
         message: existingUser.email === email 
           ? 'Email already registered' 
@@ -28,6 +44,7 @@ export const register = async (req: Request, res: Response) => {
     });
 
     await user.save();
+    console.log('✅ User created successfully:', { id: user._id, username, email });
 
     // Generate token
     const token = generateToken((user._id as string).toString());

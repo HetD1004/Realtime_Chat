@@ -22,7 +22,9 @@ const PORT = process.env.PORT || 3000;
 const allowedOrigins = process.env.NODE_ENV === 'production' 
   ? [
       process.env.FRONTEND_URL || 'https://your-frontend-domain.vercel.app',
-      'https://*.vercel.app'
+      /^https:\/\/.*\.vercel\.app$/,  // Allow any vercel.app subdomain
+      'https://realtime-chat-vcbo.vercel.app',
+      /^https:\/\/realtime-chat-.*\.vercel\.app$/  // Allow any realtime-chat deployment
     ]
   : [
       'http://localhost:3000',

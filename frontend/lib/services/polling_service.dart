@@ -23,7 +23,9 @@ class PollingService {
   // Connect with polling instead of WebSocket
   void connect(User user) {
     _currentUser = user;
-    print('🔄 Starting polling-based connection for ${user.username}');
+    print('� CRITICAL: PollingService.connect() called');
+    print('�🔄 Starting polling-based connection for ${user.username}');
+    print('🔥 NO WEBSOCKETS USED - ONLY HTTP POLLING!');
     onConnected?.call();
   }
 

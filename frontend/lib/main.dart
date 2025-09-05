@@ -9,9 +9,11 @@ import 'screens/register_screen.dart';
 import 'screens/dashboard_screen.dart';
 
 void main() {
+  // Force cache bust - v2.0.1
   print(
-    '🚀 Starting Real-Time Chat App with Polling Service - Build ${DateTime.now().millisecondsSinceEpoch}',
+    '🚀 POLLING SERVICE v2.0.1 - Build ${DateTime.now().millisecondsSinceEpoch}',
   );
+  print('🔥 NO WEBSOCKETS - ONLY HTTP POLLING');
   runApp(const MyApp());
 }
 

@@ -27,7 +27,9 @@ class ChatProvider with ChangeNotifier {
 
   void setCurrentUser(User user) {
     _currentUser = user;
-    print('🔄 Setting current user: ${user.username}');
+    print('� CRITICAL: ChatProvider setCurrentUser called');
+    print('🔥 CRITICAL: Using PollingService (NO WEBSOCKETS!)');
+    print('�🔄 Setting current user: ${user.username}');
     print('🔄 Using PollingService for real-time messaging');
     _connectService();
     notifyListeners();
@@ -36,18 +38,23 @@ class ChatProvider with ChangeNotifier {
   void _connectService() {
     if (_currentUser == null) return;
 
+    print('🔥 CRITICAL: _connectService called - initializing POLLING SERVICE');
+
     _pollingService.onConnected = () {
+      print('🔥 CRITICAL: PollingService connected successfully');
       _isConnected = true;
       _clearError();
       notifyListeners();
     };
 
     _pollingService.onDisconnected = () {
+      print('🔥 CRITICAL: PollingService disconnected');
       _isConnected = false;
       notifyListeners();
     };
 
     _pollingService.onMessageReceived = (message) {
+      print('🔥 CRITICAL: PollingService received message: ${message.content}');
       if (_currentRoom != null && message.roomId == _currentRoom!.id) {
         // Check for duplicate messages by ID first, then by content+sender+time
         final messageExists = _messages.any(
@@ -68,6 +75,7 @@ class ChatProvider with ChangeNotifier {
     // Note: PollingService doesn't have user join/leave events
     // These would need to be implemented separately if needed
 
+    print('🔥 CRITICAL: Calling pollingService.connect()');
     _pollingService.connect(_currentUser!);
   }
 

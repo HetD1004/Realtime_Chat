@@ -3,7 +3,11 @@ class Config {
   static const String _prodBaseUrl =
       'https://realtime-chat-7xszyq30u-hetd1004s-projects.vercel.app/api';
 
-  static const bool _isProduction = bool.fromEnvironment('dart.vm.product');
+  // Use a more reliable production detection
+  static bool get _isProduction =>
+      const bool.fromEnvironment('dart.vm.product') ||
+      Uri.base.host.contains('vercel.app') ||
+      Uri.base.host != 'localhost';
 
   static String get baseUrl => _isProduction ? _prodBaseUrl : _devBaseUrl;
   static String get socketUrl => _isProduction

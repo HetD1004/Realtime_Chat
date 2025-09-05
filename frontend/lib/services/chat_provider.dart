@@ -27,6 +27,8 @@ class ChatProvider with ChangeNotifier {
 
   void setCurrentUser(User user) {
     _currentUser = user;
+    print('🔄 Setting current user: ${user.username}');
+    print('🔄 Using PollingService for real-time messaging');
     _connectService();
     notifyListeners();
   }

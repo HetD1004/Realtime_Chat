@@ -9,6 +9,7 @@ import 'screens/register_screen.dart';
 import 'screens/dashboard_screen.dart';
 
 void main() {
+  print('🚀 Starting Real-Time Chat App with Polling Service');
   runApp(const MyApp());
 }
 
@@ -119,9 +120,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
                       ),
                     ),
                     const SizedBox(height: 30),
-                    const CircularProgressIndicator(
-                      color: Colors.white,
-                    ),
+                    const CircularProgressIndicator(color: Colors.white),
                   ],
                 ),
               ),
@@ -132,7 +131,9 @@ class _AuthWrapperState extends State<AuthWrapper> {
         if (authProvider.isAuthenticated) {
           // Set current user in chat provider
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.read<ChatProvider>().setCurrentUser(authProvider.currentUser!);
+            context.read<ChatProvider>().setCurrentUser(
+              authProvider.currentUser!,
+            );
           });
           return const DashboardScreen();
         } else {

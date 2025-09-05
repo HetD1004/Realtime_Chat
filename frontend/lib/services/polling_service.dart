@@ -42,6 +42,7 @@ class PollingService {
   }
 
   void _startPolling() {
+    print('🔄 Starting polling timer (every 2 seconds)');
     _pollingTimer = Timer.periodic(Duration(seconds: 2), (timer) async {
       if (_currentRoom != null) {
         await _pollForMessages();
@@ -53,6 +54,8 @@ class PollingService {
     try {
       final token = await _authService.getToken();
       if (token == null || _currentRoom == null) return;
+
+      print('🔍 Polling for messages in room: $_currentRoom');
 
       // Get messages since last poll
       final response = await http
@@ -74,13 +77,20 @@ class PollingService {
         final data = jsonDecode(response.body) as List;
         final messages = data.map((json) => Message.fromJson(json)).toList();
 
+        print('📨 Received ${messages.length} messages from polling');
+
         // Process new messages
         for (final message in messages) {
           if (message.timestamp.isAfter(_lastMessageTime)) {
+            print('📬 New message: ${message.content}');
             onMessageReceived?.call(message);
             _lastMessageTime = message.timestamp;
           }
         }
+      } else {
+        print(
+          '⚠️ Polling API error: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       print('⚠️ Polling error: $e');

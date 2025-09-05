@@ -1,11 +1,11 @@
 {
-    "name": "frontend",
-    "short_name": "frontend",
+    "name": "RealTime Chat",
+    "short_name": "RealTime Chat",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Real-Time Chat Application - Connect and chat with people instantly",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -49,6 +49,29 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
 
+// Root endpoint - API information
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Real-Time Chat API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      auth: {
+        login: 'POST /api/auth/login',
+        register: 'POST /api/auth/register'
+      },
+      rooms: {
+        list: 'GET /api/rooms',
+        create: 'POST /api/rooms',
+        messages: 'GET /api/rooms/:id/messages'
+      }
+    },
+    documentation: 'https://github.com/HetD1004/Realtime_Chat#readme',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({ 

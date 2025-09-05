@@ -9,7 +9,9 @@ import 'screens/register_screen.dart';
 import 'screens/dashboard_screen.dart';
 
 void main() {
-  print('🚀 Starting Real-Time Chat App with Polling Service');
+  print(
+    '🚀 Starting Real-Time Chat App with Polling Service - Build ${DateTime.now().millisecondsSinceEpoch}',
+  );
   runApp(const MyApp());
 }
 

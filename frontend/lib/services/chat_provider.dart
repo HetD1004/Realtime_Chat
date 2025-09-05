@@ -108,6 +108,7 @@ class ChatProvider with ChangeNotifier {
   Future<void> joinRoom(ChatRoom room) async {
     if (_currentUser == null) return;
 
+    print('🔄 ChatProvider: Joining room ${room.name} (${room.id})');
     _setLoading(true);
     _clearError();
 
@@ -131,7 +132,10 @@ class ChatProvider with ChangeNotifier {
 
       // Join room via polling
       if (_isConnected) {
+        print('🔄 ChatProvider: Starting polling for room ${room.id}');
         _pollingService.joinRoom(room.id);
+      } else {
+        print('❌ ChatProvider: Not connected, cannot start polling');
       }
 
       _setLoading(false);

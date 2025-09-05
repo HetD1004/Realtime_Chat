@@ -1,7 +1,7 @@
 class Config {
   static const String _devBaseUrl = 'http://localhost:3000/api';
   static const String _prodBaseUrl =
-      'https://realtime-chat-7xszyq30u-hetd1004s-projects.vercel.app/api';
+      'https://realtime-chat-two-sable.vercel.app/api';
 
   // Force production URLs when not in development environment
   static bool get _isProduction {
@@ -31,6 +31,6 @@ class Config {
 
   static String get baseUrl => _isProduction ? _prodBaseUrl : _devBaseUrl;
   static String get socketUrl => _isProduction
-      ? 'https://realtime-chat-7xszyq30u-hetd1004s-projects.vercel.app'
+      ? 'https://realtime-chat-two-sable.vercel.app'
       : 'http://localhost:3000';
 }

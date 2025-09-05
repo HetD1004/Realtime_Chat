@@ -38,18 +38,77 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json({ limit: '10mb' }));
+// Enhanced JSON parsing with error handling
+app.use((req, res, next) => {
+  if (req.headers['content-type']?.includes('application/json')) {
+    console.log('📥 Raw body for JSON request:', {
+      contentType: req.headers['content-type'],
+      contentLength: req.headers['content-length'],
+      body: typeof req.body === 'string' ? req.body.substring(0, 200) : 'Not string'
+    });
+  }
+  next();
+});
+
+app.use(express.json({ 
+  limit: '10mb',
+  strict: true, // Only parse objects and arrays
+  type: ['application/json', 'text/json'], // Be explicit about content types
+  verify: (req, res, buf, encoding) => {
+    try {
+      if (buf && buf.length) {
+        const rawBody = buf.toString('utf8');
+        console.log('🔍 Raw JSON body:', rawBody.substring(0, 200));
+        
+        // Check for common malformed JSON issues
+        if (rawBody.includes('\\"') && !rawBody.includes('"')) {
+          console.warn('⚠️ Detected escaped quotes in JSON body');
+        }
+        
+        // Try to parse the JSON to validate it
+        JSON.parse(rawBody);
+        console.log('✅ JSON validation passed');
+      }
+    } catch (e: any) {
+      console.error('❌ JSON parsing error in verify:', e.message);
+      console.error('🔴 Problematic body:', buf.toString('utf8'));
+    }
+  }
+}));
+
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  console.log('📦 Request body:', req.body);
+  console.log('🔗 Content-Type:', req.headers['content-type']);
   next();
 });
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
+
+// JSON parsing error handler
+app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (error instanceof SyntaxError && 'body' in error) {
+    console.error('🚨 JSON Syntax Error:', {
+      message: error.message,
+      body: error.body,
+      rawBody: req.body,
+      contentType: req.headers['content-type'],
+      userAgent: req.headers['user-agent']
+    });
+    
+    return res.status(400).json({
+      message: 'Invalid JSON format in request body',
+      error: 'INVALID_JSON',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+  next(error);
+});
 
 // Root endpoint - API information
 app.get('/', (req, res) => {

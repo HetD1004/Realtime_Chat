@@ -7,10 +7,25 @@ export const register = async (req: Request, res: Response) => {
   try {
     console.log('🔐 Registration attempt:', {
       body: req.body,
-      headers: req.headers,
+      bodyType: typeof req.body,
+      bodyKeys: req.body ? Object.keys(req.body) : 'No body',
+      headers: {
+        'content-type': req.headers['content-type'],
+        'content-length': req.headers['content-length'],
+        'user-agent': req.headers['user-agent']?.substring(0, 50)
+      },
       method: req.method,
       url: req.url
     });
+    
+    // Check if request body is valid
+    if (!req.body || typeof req.body !== 'object') {
+      console.log('❌ Invalid request body:', req.body);
+      return res.status(400).json({
+        message: 'Invalid request body format',
+        error: 'INVALID_BODY'
+      });
+    }
     
     const { username, email, password } = req.body;
 

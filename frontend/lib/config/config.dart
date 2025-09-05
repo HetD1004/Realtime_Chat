@@ -13,10 +13,20 @@ class Config {
     }());
 
     // If not in debug mode, or if the host is vercel.app, use production
-    return !isDev ||
+    final isProduction =
+        !isDev ||
         Uri.base.host.contains('vercel.app') ||
         Uri.base.host.contains('netlify.app') ||
         (Uri.base.host != 'localhost' && Uri.base.host != '127.0.0.1');
+
+    // Debug logging
+    print('🔧 Config Debug:');
+    print('   isDev: $isDev');
+    print('   URI.base.host: ${Uri.base.host}');
+    print('   isProduction: $isProduction');
+    print('   baseUrl: ${isProduction ? _prodBaseUrl : _devBaseUrl}');
+
+    return isProduction;
   }
 
   static String get baseUrl => _isProduction ? _prodBaseUrl : _devBaseUrl;
